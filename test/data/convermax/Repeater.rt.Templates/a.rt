@@ -1,0 +1,4 @@
+<div>
+  <button onClick="() => {console.log('some work a1')}" />
+  <button onClick="() => {console.log('some work a2')}" />
+</div>

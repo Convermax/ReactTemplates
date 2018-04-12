@@ -1,0 +1,8 @@
+<div>
+  <cmRepeater:Repeater>
+    <cmTemplate:a rt-if="a" template="./Repeater.rt.Templates/a.rt"/>
+    <cmTemplate:b rt-if="b" template="./Repeater.rt.Templates/b.rt"/>
+    <cmTemplate:c rt-if="c" template="./Repeater.rt.Templates/c.rt"/>
+    <cmTemplate:c rt-if="d" template="./Repeater.rt.Templates/d.rt"/>
+  </cmRepeater:Repeater>
+</div>

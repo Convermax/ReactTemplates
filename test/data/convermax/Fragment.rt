@@ -1,0 +1,5 @@
+<div>
+  <cm:Component wrapper="React.Fragment">
+    Hello
+  </cm:Component>
+</div>

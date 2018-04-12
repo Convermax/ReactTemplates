@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "test1": "babel-node test/src/test.js",
     "test": "mocha test/src/**/*.unit.js",
+    "test_cm": "mocha test/src/**/cm_test.unit.js",
     "test-cov": "nyc mocha -- test/src/**/*.unit.js --require test/support/env --reporter dot --check-leaks test/ test/acceptance/",
     "patch": "npm version patch -m\"update version to %s\" && git push && git push --tags",
     "minor": "npm version minor -m\"update version to %s\" && git push && git push --tags",

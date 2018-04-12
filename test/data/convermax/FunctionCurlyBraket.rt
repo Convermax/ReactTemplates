@@ -1,0 +1,14 @@
+
+
+
+<div>
+    <cmRepeater:RootRepeater>
+      <cmRepeater:Group>
+          <cmTemplate:Items>
+            <div class="col grid_6of12">
+              <span id="{this.ItemNumber}" onClick="() => addToMySelection('3', { Name: 'PatternColorID', Value: this.ItemNumber })" class="myselection"></span>
+            </div>
+          </cmTemplate:Items>
+        </cmRepeater:Group>
+    </cmRepeater:RootRepeater>
+</div>

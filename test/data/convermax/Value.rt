@@ -1,0 +1,13 @@
+<div>
+    <cm:FacetsPanel>
+
+        <cmRepeater:Facets wrapper="ul" class="list-group">
+          <cmTemplate:ColorFacet>
+              colorFacet
+                <cm:ColorSlider>
+                  colorSlider
+                </cm:ColorSlider>
+          </cmTemplate:ColorFacet>
+        </cmRepeater:Facets>
+    </cm:FacetsPanel>
+</div>
