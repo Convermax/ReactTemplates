@@ -13,6 +13,7 @@ const utils = require('./utils')
 const validateJS = utils.validateJS
 const RTCodeError = rtError.RTCodeError
 
+
 const repeatTemplate = _.template('_.map(<%= collection %>,<%= repeatFunction %>.bind(<%= repeatBinds %>))')
 const ifTemplate = _.template('((<%= condition %>)?(<%= body %>):null)')
 const propsTemplateSimple = _.template('_.assign({}, <%= generatedProps %>, <%= rtProps %>)')
@@ -56,6 +57,10 @@ const requireAttr = 'rt-require'
 const importAttr = 'rt-import'
 const statelessAttr = 'rt-stateless'
 const preAttr = 'rt-pre'
+
+const cm = nodeName => _.startsWith(nodeName, 'cm:')
+const cmTemplate = nodeName => _.startsWith(nodeName, 'cmTemplate:')
+const cmRepeater = nodeName => _.startsWith(nodeName, 'cmRepeater:')
 
 const reactTemplatesSelfClosingTags = [includeNode]
 
@@ -428,12 +433,25 @@ function convertHtmlToReact(node, context) {
 
         const children = _.map(node.children, child => {
             const code = convertHtmlToReact(child, context)
+            //console.log(code)
             validateJS(code, child, context)
             return code
         })
 
         data.children = utils.concatChildren(children)
+/*
+        if (cm(node.name)) {
+            console.log(node.name)
+        }
 
+        if (cmTemplate(node.name)) {
+            console.log(node.name)
+        }
+
+        if (cmRepeater(node.name)) {
+            console.log(node.name)
+        }
+*/
         if (node.name === virtualNode) { //eslint-disable-line wix-editor/prefer-ternary
             data.body = `[${_.compact(children).join(',')}]`
         } else {
@@ -720,10 +738,276 @@ function convertJSRTToJS(text, reportContext, options) {
     return parseJS(code, options)
 }
 
+
+
+
+
+
+/***************/
+
+var path = require('path');
+var $ = require('cheerio');
+var loaderUtils = require('loader-utils');
+var fs = require('fs');
+
+/* need to replate with cherrio*/
+
+var DOMParser = require('xmldom').DOMParser;
+var XMLSerializer = require('xmldom').XMLSerializer;
+/******************/
+
+const serializer = new XMLSerializer();
+
+var nodeType = {
+    element: 1,
+    attrubute: 2,
+    text: 3
+}
+var cheerioConf = {
+    lowerCaseTags: false,
+    lowerCaseAttributeNames: false,
+    xmlMode: true,
+    withStartIndices: true
+};
+
+const print = (el) => {
+  console.log(serializer.serializeToString(el));
+  console.log();
+};
+
+function replaceDoubleBrackets(source) {
+    return source.replace(/{{[^}]+}}/g, (str) => `{this.${str.slice(2, -2).trim()}}`);
+}
+function clearXmlns(source) {
+    return source.replace(/xmlns="http:\/\/www\.w3\.org\/1999\/xhtml"/g, '');
+}
+function replaceColon(source) {
+    return source.replace(/\:/g, '_');
+}
+
+class ConvermaxTemplates {
+  constructor(context, source, options) {
+    this.source = source;
+    this.context = context;
+    this.parser = new DOMParser();
+    this.options = options;
+    this.repeaterContext = []
+
+    this.$ = $.load(replaceDoubleBrackets(source), cheerioConf);
+    this.$('[template]').each((index, element) => this.templateProcessCheerio(element, context.resourcePath));
+    this.$('[inner-html]').each((index, element) => {
+      const el = this.$(element);
+      const value = el.attr('inner-html');
+      el.removeAttr('inner-html');
+      el.attr('rt-props', `{ dangerouslySetInnerHTML: {__html: ${value}}}`)
+    });
+    //console.log('##################constructor###############')
+    //console.log(this.$.html())
+    //console.log('###########################################')
+    this.xmlDoc = this.parser.parseFromString(this.$.html(), "text/html");
+
+    //console.log(serializer.serializeToString(this.xmlDoc))
+    //this.templateProcess(this.xmlDoc.childNodes, context.resourcePath);
+    try {
+      this.wrapProcess(this.findComponents(this.xmlDoc))
+    } catch(e) {
+      console.log(e.message)
+      console.log(e)
+    }
+  }
+  templateProcessCheerio (element, resourcePath) {
+      const el = this.$(element);
+      const templatePath = path.resolve(path.dirname(resourcePath), el.attr('template'));
+      el.removeAttr('template');
+      const source = this.options.readFileSync(templatePath).toString('utf8');
+      const file = $.load(replaceDoubleBrackets(source), cheerioConf);
+      file('[template]').each((index, element) => this.templateProcessCheerio(element, templatePath))
+      //console.log(file.html())
+      el.empty().append(file.html(), cheerioConf);
+      //print(el)
+  }
+  wrapProcess(components) {
+
+    components.forEach((component) => {
+      //print(component)
+      if(component.tagName.indexOf('cm:') === 0) {
+        component.parentNode.replaceChild(this.simpleComponent(component.cloneNode(true)), component)
+      }
+      if(component.tagName.indexOf('cmTemplate:') === 0) {
+
+        if(component.parentNode.tagName.indexOf('cmRepeater:') !== 0) {
+
+          component.parentNode.replaceChild(this.rtIfTemplate(component.cloneNode(true)), component)
+        }
+        if(component.parentNode.tagName.indexOf('cmRepeater:') === 0) {
+          this.repeaterContext.push(this.functionTemplate(component.cloneNode(true)))
+        }
+      }
+      if(component.tagName.indexOf('cmRepeater:') === 0) {
+        if(this.repeaterContext.length === 0) {
+
+          component.parentNode.replaceChild(this.repeaterComponent(component.cloneNode(true)), component);
+        } else {
+
+          component.parentNode.replaceChild(this.repeaterComponent(component.cloneNode(true),
+            `function(){ ${[...this.repeaterContext].map(v => v.scope).join('')} return ${[...this.repeaterContext, {condition: 'React.createElement("div", {"className": "cmTemplate_Unknow"}, JSON.stringify(this))'}]
+            .map(v => v.condition).join(':')}}`), component)
+          this.repeaterContext = [];
+        }
+      }
+      //console.log(str(com))
+    })
+  }
+  findComponents(element) {
+      const childNodes = element.childNodes;
+      const components = [];
+      if (childNodes == null) {
+          return components;
+      }
+      for(let i = 0; i < childNodes.length; i++) {
+          if(childNodes[i].childNodes != null && childNodes[i].childNodes.length > 0) {
+              components.push(...this.findComponents(childNodes[i]));
+          }
+          if(childNodes[i].tagName != null
+            && (childNodes[i].tagName.indexOf('cm:') === 0
+            || childNodes[i].tagName.indexOf('cmTemplate:') === 0
+            || childNodes[i].tagName.indexOf('cmRepeater:') === 0)) {
+              components.push(childNodes[i]);
+          }
+      }
+
+      return components;
+  }
+  getReactTemplate() {
+    //console.log('**************getReactTemplate***************')
+    //console.log(serializer.serializeToString(this.xmlDoc));
+    //console.log('**********************************************')
+    //console.log(serializer.serializeToString(this.xmlDoc.childNodes[0]));
+    //return clearXmlns(serializer.serializeToString(this.xmlDoc));
+    var parsed = convertTemplateToReact(clearXmlns(serializer.serializeToString(this.xmlDoc)), this.options);
+    parsed = parsed.replace(/_\.map/g, "_map");
+    parsed = parsed.replace(/_\.assign/g, "Object.assign");
+    return parsed;
+    //return clearXmlns(serializer.serializeToString(this.xmlDoc.childNodes[0]))
+    //return this.xmlDoc.html();
+  }
+  simpleComponent(node) {
+    const newTagName = node.getAttribute('wrapper');
+    const widgetName = node.getAttribute('widget-name');
+    node.removeAttribute('wrapper');
+    node.removeAttribute('widget-name');
+    const newNode = this.xmlDoc.createElement((newTagName === '') ? 'div' : newTagName);
+
+    const innerNode = node.cloneNode(true);
+    for(let j = 0; j < innerNode.childNodes.length; j++) {
+      newNode.appendChild(innerNode.childNodes[j].cloneNode(true));
+    }
+    newNode.attributes = innerNode.attributes;
+    newNode.setAttribute('class', `${newNode.getAttribute('class')} ${replaceColon(innerNode.tagName)}`);
+    //console.log(serializer.serializeToString(newNode))
+    const newComponent = this.xmlDoc.createTextNode(`{this.${innerNode.tagName.slice(3)}(${
+      convertTemplateToReact(clearXmlns(serializer.serializeToString(newNode)), {...this.options, modules: 'jsrt'})
+    }, {widgetName:'${(widgetName !== '') ? widgetName : undefined}'})}`);
+    return newComponent;
+  }
+  repeaterComponent(node, inner) {
+    const newTagName = node.getAttribute('wrapper');
+    node.removeAttribute('wrapper');
+    const count = node.getAttribute('count');
+    node.removeAttribute('count');
+    const newNode = this.xmlDoc.createElement((newTagName === '') ? 'div' : newTagName);
+
+    const tagName = node.tagName.slice(11);
+
+    const virtual = this.xmlDoc.createElement('rt-virtual');
+
+    virtual.setAttribute('rt-repeat', `${tagName} in this.${tagName}`);
+    const fragment = this.xmlDoc.createDocumentFragment()
+    for(let j = 0; j < node.childNodes.length; j++) {
+      fragment.appendChild(node.childNodes[j].cloneNode(true));
+    }
+    const newComponent = this.xmlDoc.createTextNode(`{${tagName}(${
+      (inner == null) ? convertTemplateToReact(clearXmlns(serializer.serializeToString(fragment)), {...this.options, modules: 'jsrt'})
+      : inner
+    }, {count:${(count !== '') ? count : 'undefined'}})}`);
+
+
+    virtual.appendChild(newComponent);
+    //console.log(serializer.serializeToString(virtual))
+    newNode.attributes = node.attributes;
+    newNode.setAttribute('class', `${newNode.getAttribute('class')} ${replaceColon(node.tagName)}`);
+    newNode.appendChild(virtual);
+
+    return newNode;
+  }
+
+  rtIfTemplate(node) {
+
+    const newTagName = node.getAttribute('wrapper');
+    node.removeAttribute('wrapper');
+    const tagName = node.tagName.slice(11);
+    const newNode = this.xmlDoc.createElement((newTagName === '') ? 'div' : newTagName);
+    newNode.attributes = node.attributes;
+    newNode.setAttribute('class', `${newNode.getAttribute('class')} ${replaceColon(node.tagName)}`);
+    const rtIfAttr = newNode.getAttribute('rt-if');
+    newNode.setAttribute('rt-if', (rtIfAttr === '') ? `this.template === '${tagName}'`: rtIfAttr);
+
+    for(let j = 0; j < node.childNodes.length; j++) {
+      newNode.appendChild(node.childNodes[j].cloneNode(true));
+    }
+
+    return newNode;
+  }
+  parseReactTemplate(fnString, suffix) {
+    let ast = esprima.parseScript(`(${fnString})`)
+    let returnStatement = escodegen.generate(
+      ast.body[0].expression.body.body.find(function(v){return v.type === "ReturnStatement"}).argument
+    );
+
+    let scopeArr = [];
+
+    ast.body[0].expression.body.body = ast.body[0].expression.body.body.forEach(
+      function(v) {
+        if(v.type === "FunctionDeclaration") {
+          returnStatement = returnStatement.replace(v.id.name, `${v.id.name}_${suffix}`)
+
+          v.id.name = `${v.id.name}_${suffix}`
+          scopeArr.push(escodegen.generate(v) )
+        }
+      }
+    )
+    return {func: returnStatement, scope: scopeArr.join('\n')};
+  }
+  functionTemplate(node) {
+    //print(node)
+    const newTagName = node.getAttribute('wrapper');
+    node.removeAttribute('wrapper');
+    const newNode = this.xmlDoc.createElement((newTagName === '') ? 'div' : newTagName);
+
+    const tagName = node.tagName.slice(11);
+    for(let j = 0; j < node.childNodes.length; j++) {
+      newNode.appendChild(node.childNodes[j].cloneNode(true));
+    }
+
+    newNode.attributes = node.attributes;
+    const rtIfAttr = newNode.getAttribute('rt-if');
+    newNode.removeAttribute('rt-if');
+    const condition = (rtIfAttr === '') ? `(this.template === '${tagName}')` : `(${rtIfAttr})`;
+    newNode.setAttribute('class', `${newNode.getAttribute('class')} ${replaceColon(node.tagName)}`);
+    const reactTemplateParse = this.parseReactTemplate(
+      convertTemplateToReact(clearXmlns(serializer.serializeToString(newNode)), {...this.options, modules: 'jsrt'}),
+      tagName.replace('-', ''));
+
+    return { condition: `${condition}?(${reactTemplateParse.func})`, scope: reactTemplateParse.scope};
+  }
+}
+
+
 module.exports = {
     convertTemplateToReact,
     convertRT,
     convertJSRTToJS,
     RTCodeError,
+    ConvermaxTemplates,
     normalizeName: utils.normalizeName
 }
