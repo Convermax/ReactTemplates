@@ -1,3 +1,7 @@
 <div>
-    <cm:SearchHeader></cm:SearchHeader>
+    <cm:SearchHeader
+      id="searchHeader"
+      widget-name="searchHeader"
+      wrapper="li"
+      class="cm_class"></cm:SearchHeader>
 </div>

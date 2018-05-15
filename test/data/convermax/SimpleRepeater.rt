@@ -1,5 +1,10 @@
 <div>
-  <cmRepeater:Repeater>
+  <cmRepeater:Repeater
+    id="searchHeader"
+    count="3"
+    wrapper="li"
+    class="cm_class"
+  >
     <div>Repeate</div>
   </cmRepeater:Repeater>
 </div>

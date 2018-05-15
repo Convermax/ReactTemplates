@@ -5,11 +5,14 @@ module.exports = function () {
     function repeatRepeater1(Repeater, RepeaterIndex) {
         return [Repeater(function () {
                 return React.createElement('div', {}, 'Repeate');
-            }, { count: undefined })];
+            }, { count: 3 })];
     }
     return React.createElement('div', {}, React.createElement.apply(this, [
-        'div',
-        { 'className': 'cmRepeater_Repeater' },
+        'li',
+        {
+            'id': 'searchHeader',
+            'className': 'cm_class cmRepeater_Repeater'
+        },
         _map(this.Repeater, repeatRepeater1.bind(this))
     ]));
 };
