@@ -636,13 +636,9 @@ function convertTemplateToReact(html, options) {
     return convertRT(html, context, options)
 }
 
+
 function parseAndConvertHtmlToReact(html, context) {
-    const rootNode = cheerio.load(html, {
-        lowerCaseTags: false,
-        lowerCaseAttributeNames: false,
-        xmlMode: true,
-        withStartIndices: true
-    })
+    const rootNode = cheerio.load(html, cheerioConf)
     utils.validate(context.options, context, context.reportContext, rootNode.root()[0])
     let rootTags = _.filter(rootNode.root()[0].children, {type: 'tag'})
     rootTags = handleSelfClosingHtmlTags(rootTags)
@@ -740,17 +736,13 @@ function convertJSRTToJS(text, reportContext, options) {
 
 
 
-
-
-
-/***************/
+/*******Convermax code start********/
 
 var path = require('path');
-var $ = require('cheerio');
 var loaderUtils = require('loader-utils');
 var fs = require('fs');
 
-/* need to replate with cherrio*/
+/* need to replace with cherrio*/
 
 var DOMParser = require('xmldom').DOMParser;
 var XMLSerializer = require('xmldom').XMLSerializer;
@@ -784,6 +776,9 @@ function clearXmlns(source) {
 function replaceColon(source) {
     return source.replace(/\:/g, '_');
 }
+const getTagName = (wrapper) => (wrapper == null) ? 'div' : wrapper
+const getWidgetName = (widgetName) => (widgetName === '') ? undefined : widgetName;
+const getCount = (count) => (count !== '') ? count : 'undefined';
 
 class ConvermaxTemplates {
   constructor(context, source, options) {
@@ -791,72 +786,30 @@ class ConvermaxTemplates {
     this.context = context;
     this.parser = new DOMParser();
     this.options = options;
-    this.repeaterContext = []
+    this.repeaterContext = [];
+    this.repeaterContext2 = [];
 
-    this.$ = $.load(replaceDoubleBrackets(source), cheerioConf);
+    this.$ = cheerio.load(replaceDoubleBrackets(source), cheerioConf);
+
     this.$('[template]').each((index, element) => this.templateProcessCheerio(element, context.resourcePath));
     this.$('[inner-html]').each((index, element) => {
-      const el = this.$(element);
+      const el = cheerio(element);
       const value = el.attr('inner-html');
       el.removeAttr('inner-html');
-      el.attr('rt-props', `{ dangerouslySetInnerHTML: {__html: ${value}}}`)
+      el.attr('rt-props', `{ dangerouslySetInnerHTML: {__html: ${value}}}`);
     });
-    //console.log('##################constructor###############')
-    //console.log(this.$.html())
-    //console.log('###########################################')
-    this.xmlDoc = this.parser.parseFromString(this.$.html(), "text/html");
 
-    //console.log(serializer.serializeToString(this.xmlDoc))
-    //this.templateProcess(this.xmlDoc.childNodes, context.resourcePath);
+
+    this.xmlDoc = this.parser.parseFromString(this.$.html(), "text/html");
     try {
+      console.log(this.$.html())
       this.wrapProcess(this.findComponents(this.xmlDoc))
+      this.wrapProcess2(this.findComponents2(this.$.root()[0]))
+      console.log(this.$.html())
     } catch(e) {
       console.log(e.message)
       console.log(e)
     }
-  }
-  templateProcessCheerio (element, resourcePath) {
-      const el = this.$(element);
-      const templatePath = path.resolve(path.dirname(resourcePath), el.attr('template'));
-      el.removeAttr('template');
-      const source = this.options.readFileSync(templatePath).toString('utf8');
-      const file = $.load(replaceDoubleBrackets(source), cheerioConf);
-      file('[template]').each((index, element) => this.templateProcessCheerio(element, templatePath))
-      //console.log(file.html())
-      el.empty().append(file.html(), cheerioConf);
-      //print(el)
-  }
-  wrapProcess(components) {
-
-    components.forEach((component) => {
-      //print(component)
-      if(component.tagName.indexOf('cm:') === 0) {
-        component.parentNode.replaceChild(this.simpleComponent(component.cloneNode(true)), component)
-      }
-      if(component.tagName.indexOf('cmTemplate:') === 0) {
-
-        if(component.parentNode.tagName.indexOf('cmRepeater:') !== 0) {
-
-          component.parentNode.replaceChild(this.rtIfTemplate(component.cloneNode(true)), component)
-        }
-        if(component.parentNode.tagName.indexOf('cmRepeater:') === 0) {
-          this.repeaterContext.push(this.functionTemplate(component.cloneNode(true)))
-        }
-      }
-      if(component.tagName.indexOf('cmRepeater:') === 0) {
-        if(this.repeaterContext.length === 0) {
-
-          component.parentNode.replaceChild(this.repeaterComponent(component.cloneNode(true)), component);
-        } else {
-
-          component.parentNode.replaceChild(this.repeaterComponent(component.cloneNode(true),
-            `function(){ ${[...this.repeaterContext].map(v => v.scope).join('')} return ${[...this.repeaterContext, {condition: 'React.createElement("div", {"className": "cmTemplate_Unknow"}, JSON.stringify(this))'}]
-            .map(v => v.condition).join(':')}}`), component)
-          this.repeaterContext = [];
-        }
-      }
-      //console.log(str(com))
-    })
   }
   findComponents(element) {
       const childNodes = element.childNodes;
@@ -878,18 +831,131 @@ class ConvermaxTemplates {
 
       return components;
   }
+
+  findComponents2($element) {
+    const childNodes = $element.children
+    const components = [];
+    if(childNodes.length == 0) {
+        return components
+    }
+
+    for(let i = 0; i < childNodes.length; i++) {
+        if(childNodes[i].children != null && childNodes[i].children.length > 0) {
+            components.push(...this.findComponents(childNodes[i]));
+        }
+        if(childNodes[i].name != null
+          && cm(childNodes[i].name)
+          || cmTemplate(childNodes[i].name)
+          || cmRepeater(childNodes[i].name)) {
+            components.push(childNodes[i]);
+        }
+    }
+    return components
+  }
+  wrapProcess2 (components) {
+    components.forEach((component) => {
+        const $component = this.$(component);
+        if(cm(component.name)) {
+            $component.replaceWith(this.simpleComponent2($component))
+        }
+        if(cmTemplate(component.name)) {
+
+        }
+        if(cmRepeater(component.name)) {
+            if(this.repeaterContext2.length === 0) {
+                $component.replaceWith(this.repeaterComponent2($component))
+            }
+        }
+    })
+  }
+
+  wrapProcess(components) {
+
+    components.forEach((component) => {
+      if(component.tagName.indexOf('cm:') === 0) {
+        component.parentNode.replaceChild(this.simpleComponent(component.cloneNode(true)), component)
+      }
+      if(component.tagName.indexOf('cmTemplate:') === 0) {
+
+        if(component.parentNode.tagName.indexOf('cmRepeater:') !== 0) {
+          component.parentNode.replaceChild(this.rtIfTemplate(component.cloneNode(true)), component)
+        }
+        if(component.parentNode.tagName.indexOf('cmRepeater:') === 0) {
+          this.repeaterContext.push(this.functionTemplate(component.cloneNode(true)))
+        }
+      }
+      if(component.tagName.indexOf('cmRepeater:') === 0) {
+        if(this.repeaterContext.length === 0) {
+
+          component.parentNode.replaceChild(this.repeaterComponent(component.cloneNode(true)), component);
+        } else {
+
+          component.parentNode.replaceChild(this.repeaterComponent(component.cloneNode(true),
+            `function(){ ${[...this.repeaterContext].map(v => v.scope).join('')} return ${[...this.repeaterContext, {condition: 'React.createElement("div", {"className": "cmTemplate_Unknow"}, JSON.stringify(this))'}]
+            .map(v => v.condition).join(':')}}`), component)
+          this.repeaterContext = [];
+        }
+      }
+    })
+  }
+
+
+  templateProcessCheerio (element, resourcePath) {
+      const el = this.$(element);
+      const templatePath = path.resolve(path.dirname(resourcePath), el.attr('template'));
+      el.removeAttr('template');
+      const source = this.options.readFileSync(templatePath).toString('utf8');
+      const file = cheerio.load(replaceDoubleBrackets(source), cheerioConf);
+      file('[template]').each((index, element) => this.templateProcessCheerio(element, templatePath))
+      el.empty().append(file.html(), cheerioConf);
+  }
+
   getReactTemplate() {
-    //console.log('**************getReactTemplate***************')
-    //console.log(serializer.serializeToString(this.xmlDoc));
-    //console.log('**********************************************')
-    //console.log(serializer.serializeToString(this.xmlDoc.childNodes[0]));
-    //return clearXmlns(serializer.serializeToString(this.xmlDoc));
     var parsed = convertTemplateToReact(clearXmlns(serializer.serializeToString(this.xmlDoc)), this.options);
+    //var parsed = convertTemplateToReact(this.$.html(), this.options);
     parsed = parsed.replace(/_\.map/g, "_map");
     parsed = parsed.replace(/_\.assign/g, "Object.assign");
     return parsed;
-    //return clearXmlns(serializer.serializeToString(this.xmlDoc.childNodes[0]))
-    //return this.xmlDoc.html();
+  }
+  simpleComponent2($node) {
+    const newTagName = getTagName($node.attr('wrapper'))
+    const widgetName = getWidgetName($node.attr('widget-name'));
+    const slicedName = $node.get(0).tagName.slice(3);
+    const localRoot = cheerio.load(`<${newTagName}>`, cheerioConf);
+    const newNode = localRoot(newTagName);
+
+    newNode.append($node.children())
+    if(newTagName !== "React.Fragment") {
+        newNode.addClass(`cm_${slicedName}`)
+    }
+
+    const converted = convertTemplateToReact(localRoot.html(),{...this.options, modules: 'jsrt'});
+    return `{this.${slicedName}(${converted},{widgetName:'${widgetName}'})}`;
+  }
+  repeaterComponent2($node, inner) {
+    const newTagName = getTagName($node.attr('wrapper'));
+    const count = getCount($node.attr('count'));
+    const slicedName = $node.get(0).tagName.slice(11);
+    const localRoot = cheerio.load(`<${newTagName}>`, cheerioConf);
+    const newNode = localRoot(newTagName);
+    const virtual = localRoot('<rt-virtual>');
+    const fragmentRoot = cheerio.load('<div>');
+    const fragmentNode = fragmentRoot($node);
+
+    virtual.attr('rt-repeat', `${slicedName} in this.${slicedName}`);
+
+    virtual.text(`{${slicedName}(${
+      (inner == null) ? convertTemplateToReact(fragmentNode.html(), {...this.options, modules: 'jsrt'})
+      : inner
+    }, {count:${(count !== '') ? count : 'undefined'}})}`);
+
+    newNode.append(virtual);
+
+    if(newTagName !== "React.Fragment") {
+        newNode.addClass(`cmRepeater_${slicedName}`)
+    }
+
+    return localRoot.html();
   }
   simpleComponent(node) {
     const newTagName = node.getAttribute('wrapper');
@@ -904,12 +970,14 @@ class ConvermaxTemplates {
     }
     newNode.attributes = innerNode.attributes;
     newNode.setAttribute('class', `${newNode.getAttribute('class')} ${replaceColon(innerNode.tagName)}`);
-    //console.log(serializer.serializeToString(newNode))
+    //console.log(clearXmlns(serializer.serializeToString(newNode)))
     const newComponent = this.xmlDoc.createTextNode(`{this.${innerNode.tagName.slice(3)}(${
       convertTemplateToReact(clearXmlns(serializer.serializeToString(newNode)), {...this.options, modules: 'jsrt'})
     }, {widgetName:'${(widgetName !== '') ? widgetName : undefined}'})}`);
+    //print(newComponent)
     return newComponent;
   }
+
   repeaterComponent(node, inner) {
     const newTagName = node.getAttribute('wrapper');
     node.removeAttribute('wrapper');
@@ -926,6 +994,7 @@ class ConvermaxTemplates {
     for(let j = 0; j < node.childNodes.length; j++) {
       fragment.appendChild(node.childNodes[j].cloneNode(true));
     }
+
     const newComponent = this.xmlDoc.createTextNode(`{${tagName}(${
       (inner == null) ? convertTemplateToReact(clearXmlns(serializer.serializeToString(fragment)), {...this.options, modules: 'jsrt'})
       : inner
@@ -933,7 +1002,6 @@ class ConvermaxTemplates {
 
 
     virtual.appendChild(newComponent);
-    //console.log(serializer.serializeToString(virtual))
     newNode.attributes = node.attributes;
     newNode.setAttribute('class', `${newNode.getAttribute('class')} ${replaceColon(node.tagName)}`);
     newNode.appendChild(virtual);
@@ -979,7 +1047,6 @@ class ConvermaxTemplates {
     return {func: returnStatement, scope: scopeArr.join('\n')};
   }
   functionTemplate(node) {
-    //print(node)
     const newTagName = node.getAttribute('wrapper');
     node.removeAttribute('wrapper');
     const newNode = this.xmlDoc.createElement((newTagName === '') ? 'div' : newTagName);

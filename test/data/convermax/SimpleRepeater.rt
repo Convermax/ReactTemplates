@@ -1,0 +1,5 @@
+<div>
+  <cmRepeater:Repeater>
+    <div>Repeate</div>
+  </cmRepeater:Repeater>
+</div>

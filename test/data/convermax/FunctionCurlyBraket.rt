@@ -1,6 +1,3 @@
-
-
-
 <div>
     <cmRepeater:RootRepeater>
       <cmRepeater:Group>
