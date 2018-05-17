@@ -7,7 +7,7 @@ const fsUtil = require('../../src/fsUtil')
 const fs = require('fs')
 const assert = require('assert')
 
-const files2 = [
+const files = [
     'Component.rt',
     'DashAtName.rt',
     'Fragment.rt',
@@ -16,10 +16,9 @@ const files2 = [
     'Repeat.rt',
     'RepeaterWithScope.rt',
     'Value.rt',
-    'SimpleRepeater.rt'
+    'SimpleRepeater.rt',
+    'Template.rt'
 ]
-
-const files = ['SimpleRepeater.rt']
 
 describe('cm_test', () => {
     describe('#comvermax tests', () => {
