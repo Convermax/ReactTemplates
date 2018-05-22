@@ -7,5 +7,12 @@ module.exports = function () {
             'id': 'searchHeader',
             'className': 'cm_class cm_SearchHeader'
         });
-    }, { widgetName: 'searchHeader' }), '\n');
+    }, {
+        widgetName: 'searchHeader',
+        items: [
+            1,
+            2,
+            3
+        ]
+    }), '\n');
 };

@@ -873,12 +873,14 @@ class ConvermaxTemplates {
   simpleComponent($node) {
     const newTagName = getTagName($node.attr('wrapper'))
     const widgetName = getWidgetName($node.attr('widget-name'));
+    const items = getWidgetName($node.attr('cm-items'));
     const slicedName = $node.get(0).tagName.slice(3);
     const localRoot = cheerio.load(`<${newTagName}>${$node.html()}</${newTagName}>`, cheerioConf);
     const newNode = localRoot(newTagName).first();
 
     $node.attr('wrapper', null);
     $node.attr('widget-name', null);
+    $node.attr('cm-items', null);
     if(newTagName !== "React.Fragment") {
         newNode.attr($node.attr());
         newNode.addClass(replaceColon($node.get(0).tagName));
@@ -886,7 +888,7 @@ class ConvermaxTemplates {
 
     const converted = convertTemplateToReact(localRoot.html(),{...this.options, modules: 'jsrt'});
 
-    return `{this.${slicedName}(${converted},{widgetName:'${widgetName}'})}`;
+    return `{this.${slicedName}(${converted},{widgetName:'${widgetName}', items:${items}})}`;
   }
   repeaterComponent($node, inner) {
     const newTagName = getTagName($node.attr('wrapper'));
