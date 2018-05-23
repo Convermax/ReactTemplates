@@ -1,0 +1,11 @@
+<div>
+  <cmRepeater:Values>
+    <div class="col grid_12of12 colset">
+      <div class="facetdiv">
+          <span class="facetentryval">{this.HitCount}</span>
+          {this.checkbox}
+          <span class="facetentrykey">{this.Value}</span>
+      </div>
+    </div>
+  </cmRepeater:Values>
+</div>

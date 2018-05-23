@@ -29,7 +29,7 @@ module.exports = function () {
                                     console.log('some work c2');
                                 }
                             }
-                            return a ? React.createElement('div', { 'className': 'cmTemplate_a' }, React.createElement('div', {}, React.createElement('button', { 'onClick': onClick1_a.bind(this) }), React.createElement('button', { 'onClick': onClick2_a.bind(this) }))) : b ? React.createElement('div', { 'className': 'cmTemplate_b' }, React.createElement.apply(this, [
+                            return this.template === 'a' ? React.createElement('div', { 'className': 'cmTemplate_a' }, React.createElement('div', {}, React.createElement('button', { 'onClick': onClick1_a.bind(this) }), React.createElement('button', { 'onClick': onClick2_a.bind(this) }))) : this.template === 'b' ? React.createElement('div', { 'className': 'cmTemplate_b' }, React.createElement.apply(this, [
                                 'div',
                                 {},
                                 _map([
@@ -37,10 +37,10 @@ module.exports = function () {
                                     2,
                                     3
                                 ], repeatSize1_b.bind(this))
-                            ])) : c ? React.createElement('div', { 'className': 'cmTemplate_c' }, React.createElement('div', {}, React.createElement('button', { 'onClick': onClick1_c.bind(this) }), React.createElement('button', { 'onClick': onClick2_c.bind(this) }))) : d ? React.createElement('div', { 'className': 'cmTemplate_d' }, React.createElement('div', {}, '\n  empty\n')) : React.createElement('div', { 'className': 'cmTemplate_Unknow' }, JSON.stringify(this));
+                            ])) : this.template === 'c' ? React.createElement('div', { 'className': 'cmTemplate_c' }, React.createElement('div', {}, React.createElement('button', { 'onClick': onClick1_c.bind(this) }), React.createElement('button', { 'onClick': onClick2_c.bind(this) }))) : this.template === 'd' ? React.createElement('div', { 'className': 'cmTemplate_d' }, React.createElement('div', {}, '\n  empty\n')) : React.createElement('div', { 'className': 'cmTemplate_Unknow' }, JSON.stringify(this));
                         }, { count: undefined })];
                 }
-                return e ? React.createElement('div', { 'className': 'cmTemplate_e' }, React.createElement('div', {}, React.createElement.apply(this, [
+                return this.template === 'e' ? React.createElement('div', { 'className': 'cmTemplate_e' }, React.createElement('div', {}, React.createElement.apply(this, [
                     'div',
                     { 'className': 'cmRepeater_Values' },
                     _map(this.Values, repeatValues1_e.bind(this))

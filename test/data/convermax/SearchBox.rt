@@ -1,0 +1,23 @@
+<fieldset class="cm_SearchBox-fieldset">
+  <label>
+    <span class="screen-reader-text">Search for:</span>
+    <input type="search" class="search-field" placeholder="Search …" name="s" data-cm-role='search-input' />
+  </label>
+  <cm:SearchBoxMenu wrapper="ul" class="cm_autocomplete suggestion-items cm-autocomplete-allPages cm-ui ui-widget ui-widget-content ui-menu ui-autocomplete">
+    <cmRepeater:SearchBoxMenuItem>
+      <div>
+        <li rt-if="this.SuggestionGroup" class="suggestion-category">{this.SuggestionGroup}</li>
+        <cmRepeater:Items>
+          <cmTemplate:Freetext wrapper="li" class="freetext ui-menu-item" tabindex="0">
+            <span inner-html='this.TextHighlight'></span>
+          </cmTemplate:Freetext>
+          <cmTemplate:Category wrapper="li" class="cat1 ui-menu-item" tabindex="0">
+            <a>{this.Value}</a>
+          </cmTemplate:Category>
+          <cmTemplate:Product wrapper="li" class="product products ui-menu-item" tabindex="0" template='./SearchBoxT.rt' />
+        </cmRepeater:Items>
+      </div>
+    </cmRepeater:SearchBoxMenuItem>
+  </cm:SearchBoxMenu>
+  <i class="glyphicon glyphicon-search" data-cm-role="add-query"></i>
+</fieldset>
