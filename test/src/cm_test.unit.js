@@ -19,7 +19,8 @@ const files = [
     'SimpleRepeater.rt',
     'Template.rt',
     'SearchBox.rt',
-    'NamingRepeater.rt'
+    'NamingRepeater.rt',
+    'buggy.rt',
 ]
 
 describe('cm_test', () => {

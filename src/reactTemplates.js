@@ -751,7 +751,8 @@ var cheerioConf = {
     lowerCaseTags: false,
     lowerCaseAttributeNames: false,
     xmlMode: true,
-    withStartIndices: true
+    withStartIndices: true,
+    decodeEntities: false
 };
 
 const print = (el) => {
@@ -823,6 +824,7 @@ class ConvermaxTemplates {
   }
   wrapProcess (components) {
     components.forEach((component) => {
+
         const $component = this.$(component);
         if(cm(component.name)) {
             $component.replaceWith(this.simpleComponent($component))
@@ -830,7 +832,6 @@ class ConvermaxTemplates {
         if(cmTemplate(component.name)) {
             if(cmRepeater(component.parent.name)) {
                 this.repeaterContext.push(this.functionTemplate($component))
-
             } else {
                 $component.replaceWith(this.rtIfTemplate($component))
             }
@@ -846,7 +847,7 @@ class ConvermaxTemplates {
                 this.repeaterContext = [];
             }
         }
-    })
+    });
   }
 
   templateProcessCheerio (element, resourcePath) {
@@ -875,6 +876,7 @@ class ConvermaxTemplates {
     const widgetName = getWidgetName($node.attr('widget-name'));
     const items = getWidgetName($node.attr('cm-items'));
     const slicedName = $node.get(0).tagName.slice(3);
+
     const localRoot = cheerio.load(`<${newTagName}>${$node.html()}</${newTagName}>`, cheerioConf);
     const newNode = localRoot(newTagName).first();
 
@@ -923,14 +925,13 @@ class ConvermaxTemplates {
     const newTagName = getTagName($node.attr('wrapper'))
     const widgetName = getWidgetName($node.attr('widget-name'));
     const slicedName = $node.get(0).tagName.slice(11);
-    const localRoot = cheerio.load(`<${newTagName}>`, cheerioConf);
+    const localRoot = cheerio.load(`<${newTagName}>${$node.html()}</${newTagName}>`, cheerioConf);
     const newNode = localRoot(newTagName).first();
     const rtIfAttr = $node.attr('rt-if');
     $node.attr('wrapper', null);
     $node.attr('rt-if', null);
-    newNode.append($node.children());
     newNode.attr($node.attr());
-    newNode.attr('rt-if', (rtIfAttr === '') ? `this.template === '${slicedName}'`: rtIfAttr)
+    newNode.attr('rt-if', (rtIfAttr == null) ? `this.template === '${slicedName}'`: rtIfAttr)
     newNode.addClass(replaceColon($node.get(0).tagName));
 
     return newNode;
@@ -975,9 +976,6 @@ class ConvermaxTemplates {
     const reactTemplateParse = this.parseReactTemplate(
         convertTemplateToReact(localRoot.html(), {...this.options, modules: 'jsrt'}),
         slicedName.replace('-', ''));
-
-
-
 
     return { condition: `${condition}?(${reactTemplateParse.func})`, scope: reactTemplateParse.scope};
   }
