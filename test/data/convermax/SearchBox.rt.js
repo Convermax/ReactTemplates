@@ -25,11 +25,11 @@ module.exports = function () {
                                 }, React.createElement('div', { 'className': 'imgblock' }, React.createElement('img', {
                                     'src': this.post_meta__product_attributes_product_images ? '//images.ladesignconceptsinc.com/' + this.post_meta__product_attributes_product_images[0].replace(/(_detail)?(\.jpe?g)$/, '_thumb$2') : '//images.ladesignconceptsinc.com/image-not-available_thumb.jpg',
                                     'alt': true
-                                })), React.createElement('div', {}, React.createElement('a', { 'className': 'product-link product-title' }, this.post_meta__product_attributes_pattern_name ? [this.post_meta__product_attributes_pattern_name] : null, !this.post_meta__product_attributes_pattern_name && this.post_meta__product_attributes_pattern_number ? [this.post_meta__product_attributes_pattern_number] : null, !this.post_meta__product_attributes_pattern_name && !this.post_meta__product_attributes_pattern_number ? React.createElement('span', Object.assign({}, { 'key': '793' }, { dangerouslySetInnerHTML: { __html: this.post_title } })) : null), React.createElement('div', { 'className': 'product-price' }, React.createElement('div', { 'className': 'price' }, this.post_meta__sale_price ? React.createElement('del', { 'key': '1060' }, React.createElement('div', { 'className': 'woocommerce-Price-amount amount' }, React.createElement('span', { 'className': 'woocommerce-Price-currencySymbol' }, '$'), ' ', (() => {
+                                })), React.createElement('div', {}, React.createElement('a', { 'className': 'product-link product-title' }, this.post_meta__product_attributes_pattern_name ? [this.post_meta__product_attributes_pattern_name] : null, !this.post_meta__product_attributes_pattern_name && this.post_meta__product_attributes_pattern_number ? [this.post_meta__product_attributes_pattern_number] : null, !this.post_meta__product_attributes_pattern_name && !this.post_meta__product_attributes_pattern_number ? React.createElement('span', Object.assign({}, { 'key': '822' }, { dangerouslySetInnerHTML: { __html: this.post_title } })) : null), React.createElement('div', { 'className': 'product-price' }, React.createElement('div', { 'className': 'price' }, this.post_meta__sale_price ? React.createElement('del', { 'key': '1083' }, React.createElement('div', { 'className': 'woocommerce-Price-amount amount' }, React.createElement('span', { 'className': 'woocommerce-Price-currencySymbol' }, '$'), ' ', (() => {
                                     if (typeof this.post_meta__regular_price !== 'undefined') {
                                         return Number(this.post_meta__regular_price[0]).toLocaleString('en-US', { minimumFractionDigits: 2 });
                                     }
-                                })(), '\n        ')) : null, this.post_meta__regular_price ? React.createElement('ins', { 'key': '1481' }, React.createElement('div', { 'className': 'woocommerce-Price-amount amount' }, React.createElement('span', { 'className': 'woocommerce-Price-currencySymbol' }, '$'), ' ', (() => {
+                                })(), '\n        ')) : null, this.post_meta__regular_price ? React.createElement('ins', { 'key': '1527' }, React.createElement('div', { 'className': 'woocommerce-Price-amount amount' }, React.createElement('span', { 'className': 'woocommerce-Price-currencySymbol' }, '$'), ' ', (() => {
                                     if (typeof this.post_meta__sale_price !== 'undefined') {
                                         return Number(this.post_meta__sale_price[0]).toLocaleString('en-US', { minimumFractionDigits: 2 });
                                     } else if (typeof this.post_meta__regular_price !== 'undefined') {
@@ -43,7 +43,7 @@ module.exports = function () {
                     }
                     return React.createElement('div', {}, this.SuggestionGroup ? React.createElement('li', {
                         'className': 'suggestion-category',
-                        'key': '22'
+                        'key': '21'
                     }, this.SuggestionGroup) : null, React.createElement.apply(this, [
                         'div',
                         { 'className': 'cmRepeater_Items' },
@@ -56,7 +56,10 @@ module.exports = function () {
             { 'className': 'cmRepeater_SearchBoxMenuItem' },
             _map(this.SearchBoxMenuItem, repeatSearchBoxMenuItem1.bind(this))
         ]));
-    }, { widgetName: 'undefined' }), '\n  ', React.createElement('i', {
+    }, {
+        widgetName: 'undefined',
+        items: undefined
+    }), '\n  ', React.createElement('i', {
         'className': 'glyphicon glyphicon-search',
         'data-cm-role': 'add-query'
     }));

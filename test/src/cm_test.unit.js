@@ -22,7 +22,11 @@ const files = [
     'NamingRepeater.rt',
     'buggy.rt',
 ]
-
+/*
+const files = [
+    'Items.rt'
+];
+*/
 describe('cm_test', () => {
     describe('#comvermax tests', () => {
         it('should convert text successfully', () => {

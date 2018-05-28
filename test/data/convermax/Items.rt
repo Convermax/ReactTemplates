@@ -1,0 +1,5 @@
+<div>
+  <cmRepeater:Items>
+    <a data-original-title="<p>Free</p>">Free Shipping</a>
+  </cmRepeater:Items>
+</div>

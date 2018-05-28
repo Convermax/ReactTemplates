@@ -64,6 +64,9 @@ const cmRepeater = nodeName => _.startsWith(nodeName, 'cmRepeater:')
 
 const reactTemplatesSelfClosingTags = [includeNode]
 
+
+const logs = [];
+
 /**
  * @param {Options} options
  * @return {Options}
@@ -638,6 +641,7 @@ function convertTemplateToReact(html, options) {
 
 
 function parseAndConvertHtmlToReact(html, context) {
+
     const rootNode = cheerio.load(html, cheerioConf)
     utils.validate(context.options, context, context.reportContext, rootNode.root()[0])
     let rootTags = _.filter(rootNode.root()[0].children, {type: 'tag'})
@@ -752,7 +756,7 @@ var cheerioConf = {
     lowerCaseAttributeNames: false,
     xmlMode: true,
     withStartIndices: true,
-    decodeEntities: false
+    //decodeEntities: false
 };
 
 const print = (el) => {
@@ -760,7 +764,6 @@ const print = (el) => {
   console.log();
 };
 
-const logs = [];
 
 function replaceDoubleBrackets(source) {
     return source.replace(/{{[^}]+}}/g, (str) => `{this.${str.slice(2, -2).trim()}}`);
@@ -783,7 +786,6 @@ class ConvermaxTemplates {
     this.repeaterContext = [];
 
     this.$ = cheerio.load(replaceDoubleBrackets(source), cheerioConf);
-
     this.$('[template]').each((index, element) => this.templateProcessCheerio(element, context.resourcePath));
     this.$('[inner-html]').each((index, element) => {
       const el = cheerio(element);
@@ -795,7 +797,7 @@ class ConvermaxTemplates {
 
     try {
       this.wrapProcess(this.findComponents(this.$.root()[0]))
-      //logs.push(this.$.html())
+      logs.push(this.$.html())
     } catch(e) {
       console.log(e.message)
       console.log(e)
@@ -824,7 +826,6 @@ class ConvermaxTemplates {
   }
   wrapProcess (components) {
     components.forEach((component) => {
-
         const $component = this.$(component);
         if(cm(component.name)) {
             $component.replaceWith(this.simpleComponent($component))
@@ -861,10 +862,15 @@ class ConvermaxTemplates {
   }
 
   getReactTemplate() {
-    var parsed = convertTemplateToReact(this.$.html(), this.options);
+    try {
+        var parsed = convertTemplateToReact(this.$.html(), this.options);
+        parsed = parsed.replace(/_\.map/g, "_map");
+        parsed = parsed.replace(/_\.assign/g, "Object.assign");
+    }catch(e) {
+        logs.push(e.message)
+    }
 
-    parsed = parsed.replace(/_\.map/g, "_map");
-    parsed = parsed.replace(/_\.assign/g, "Object.assign");
+
 
     if(logs.length > 0) {
         fs.writeFile('log.rt', logs.join('\n'));
@@ -884,6 +890,7 @@ class ConvermaxTemplates {
     $node.attr('widget-name', null);
     $node.attr('cm-items', null);
     if(newTagName !== "React.Fragment") {
+
         newNode.attr($node.attr());
         newNode.addClass(replaceColon($node.get(0).tagName));
     }
@@ -908,13 +915,14 @@ class ConvermaxTemplates {
 
     virtual.attr('rt-repeat', `${slicedName} in this.${slicedName}`);
 
-    virtual.append(`{${slicedName}(${
+    virtual.text(`{${slicedName}(${
       (inner == null) ? convertTemplateToReact(fragmentNode.html(), {...this.options, modules: 'jsrt'})
       : inner
     }, {count:${count}})}`);
 
 
     if(newTagName !== "React.Fragment") {
+
         newNode.attr($node.attr());
         newNode.addClass(replaceColon($node.get(0).tagName))
     }
@@ -930,6 +938,8 @@ class ConvermaxTemplates {
     const rtIfAttr = $node.attr('rt-if');
     $node.attr('wrapper', null);
     $node.attr('rt-if', null);
+
+
     newNode.attr($node.attr());
     newNode.attr('rt-if', (rtIfAttr == null) ? `this.template === '${slicedName}'`: rtIfAttr)
     newNode.addClass(replaceColon($node.get(0).tagName));
