@@ -862,14 +862,15 @@ class ConvermaxTemplates {
   }
 
   getReactTemplate() {
+    let parsed;
     try {
-        var parsed = convertTemplateToReact(this.$.html(), this.options);
+        parsed = convertTemplateToReact(this.$.html(), this.options);
         parsed = parsed.replace(/_\.map/g, "_map");
         parsed = parsed.replace(/_\.assign/g, "Object.assign");
     }catch(e) {
         logs.push(e.message)
     }
-
+    logs.push(parsed)
 
 
     if(logs.length > 0) {
@@ -922,7 +923,6 @@ class ConvermaxTemplates {
 
 
     if(newTagName !== "React.Fragment") {
-
         newNode.attr($node.attr());
         newNode.addClass(replaceColon($node.get(0).tagName))
     }
