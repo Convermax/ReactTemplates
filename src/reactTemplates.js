@@ -874,7 +874,7 @@ class ConvermaxTemplates {
 
 
     if(logs.length > 0) {
-        fs.writeFile('log.rt', logs.join('\n'));
+        fs.writeFileSync('log.rt', logs.join('\n'));
     }
     return parsed;
   }
