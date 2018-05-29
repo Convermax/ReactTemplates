@@ -23,20 +23,20 @@ module.exports = function () {
         'div',
         { 'className': 'cmRepeater_Values' },
         _map(this.Values, repeatValues1.bind(this))
-    ]), '\n      ', this.ShowAll(function () {
-        return React.createElement('div', { 'className': 'cm_ShowAll' }, !this.open ? React.createElement('a', {
-            'className': 'expandswitcher collapsed',
-            'key': '33'
-        }, 'Show more ', React.createElement('i', { 'className': 'icon-down-open' })) : null, this.open ? React.createElement('a', {
-            'className': 'expandswitcher expanded',
-            'key': '138'
-        }, 'Show less ', React.createElement('i', { 'className': 'icon-up-open' })) : null);
-    }, {
-        widgetName: 'undefined',
-        items: undefined
-    }), '\n    ') : null, this.template === 'ComboBoxRangedFacet' ? React.createElement('div', {
+    ]), [this.ShowAll(function () {
+            return React.createElement('div', { 'className': 'cm_ShowAll' }, !this.open ? React.createElement('a', {
+                'className': 'expandswitcher collapsed',
+                'key': '33'
+            }, 'Show more ', React.createElement('i', { 'className': 'icon-down-open' })) : null, this.open ? React.createElement('a', {
+                'className': 'expandswitcher expanded',
+                'key': '138'
+            }, 'Show less ', React.createElement('i', { 'className': 'icon-up-open' })) : null);
+        }, {
+            widgetName: 'undefined',
+            items: undefined
+        })]) : null, this.template === 'ComboBoxRangedFacet' ? React.createElement('div', {
         'className': 'cmTemplate_ComboBoxRangedFacet',
-        'key': '1842'
+        'key': '1867'
     }, React.createElement('div', { 'className': 'ranged-facet-input-wrap' }, React.createElement('input', {
         'type': 'text',
         'data-cm-role': 'input-min',

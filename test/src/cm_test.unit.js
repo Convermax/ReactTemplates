@@ -21,12 +21,10 @@ const files = [
     'SearchBox.rt',
     'NamingRepeater.rt',
     'buggy.rt',
-]
-/*
-const files = [
+    'SearchPage.rt',
     'Items.rt'
-];
-*/
+]
+
 describe('cm_test', () => {
     describe('#comvermax tests', () => {
         it('should convert text successfully', () => {

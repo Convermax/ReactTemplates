@@ -886,7 +886,8 @@ class ConvermaxTemplates {
 
     const localRoot = cheerio.load(`<${newTagName}>${$node.html()}</${newTagName}>`, cheerioConf);
     const newNode = localRoot(newTagName).first();
-
+    const virtualRoot = cheerio.load('<rt-virtual>', cheerioConf);
+    const virtual = localRoot('<rt-virtual>').first();
     $node.attr('wrapper', null);
     $node.attr('widget-name', null);
     $node.attr('cm-items', null);
@@ -895,10 +896,10 @@ class ConvermaxTemplates {
         newNode.attr($node.attr());
         newNode.addClass(replaceColon($node.get(0).tagName));
     }
-
     const converted = convertTemplateToReact(localRoot.html(),{...this.options, modules: 'jsrt'});
+    virtual.text(`{this.${slicedName}(${converted},{widgetName:'${widgetName}', items:${items}})}`)
 
-    return `{this.${slicedName}(${converted},{widgetName:'${widgetName}', items:${items}})}`;
+    return virtual;
   }
   repeaterComponent($node, inner) {
     const newTagName = getTagName($node.attr('wrapper'));
