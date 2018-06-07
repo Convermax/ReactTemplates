@@ -1,0 +1,6 @@
+<div class="cm_Dialog-background">v
+    <cmTemplate:MobileFacets wrapper="React.Fragment" rt-if="this.name === 'MobileFacets'">
+      <cm:FilterChips template="./Repeater.rt.Templates/d.rt" />
+      <cm:FacetsPanelMobile template="./Repeater.rt.Templates/d.rt" rt-if="this.Facets.length > 0"/>
+    </cmTemplate:MobileFacets>
+</div>

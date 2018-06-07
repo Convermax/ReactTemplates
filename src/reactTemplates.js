@@ -797,7 +797,7 @@ class ConvermaxTemplates {
 
     try {
       this.wrapProcess(this.findComponents(this.$.root()[0]))
-      logs.push(this.$.html())
+      //logs.push(this.$.html())
     } catch(e) {
       console.log(e.message)
       console.log(e)
@@ -826,7 +826,9 @@ class ConvermaxTemplates {
   }
   wrapProcess (components) {
     components.forEach((component) => {
+
         const $component = this.$(component);
+
         if(cm(component.name)) {
             $component.replaceWith(this.simpleComponent($component))
         }
@@ -834,6 +836,7 @@ class ConvermaxTemplates {
             if(cmRepeater(component.parent.name)) {
                 this.repeaterContext.push(this.functionTemplate($component))
             } else {
+
                 $component.replaceWith(this.rtIfTemplate($component))
             }
         }
@@ -868,9 +871,10 @@ class ConvermaxTemplates {
         parsed = parsed.replace(/_\.map/g, "_map");
         parsed = parsed.replace(/_\.assign/g, "Object.assign");
     }catch(e) {
-        logs.push(e.message)
+        //logs.push(e.message)
+        console.error(e.message)
     }
-    logs.push(parsed)
+    //logs.push(parsed)
 
 
     if(logs.length > 0) {
@@ -934,8 +938,10 @@ class ConvermaxTemplates {
     const newTagName = getTagName($node.attr('wrapper'))
     const widgetName = getWidgetName($node.attr('widget-name'));
     const slicedName = $node.get(0).tagName.slice(11);
-    const localRoot = cheerio.load(`<${newTagName}>${$node.html()}</${newTagName}>`, cheerioConf);
-    const newNode = localRoot(newTagName).first();
+    const localRoot = cheerio.load(`<${newTagName}>`, cheerioConf);
+
+    const newNode = localRoot(`<${newTagName}>`);
+    newNode.append($node.html())
     const rtIfAttr = $node.attr('rt-if');
     $node.attr('wrapper', null);
     $node.attr('rt-if', null);
