@@ -946,11 +946,12 @@ class ConvermaxTemplates {
     $node.attr('wrapper', null);
     $node.attr('rt-if', null);
 
-
-    newNode.attr($node.attr());
     newNode.attr('rt-if', (rtIfAttr == null) ? `this.template === '${slicedName}'`: rtIfAttr)
-    newNode.addClass(replaceColon($node.get(0).tagName));
 
+    if(newTagName !== "React.Fragment") {
+        newNode.attr($node.attr());
+        newNode.addClass(replaceColon($node.get(0).tagName))
+    }
     return newNode;
   }
 

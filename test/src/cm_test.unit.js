@@ -18,6 +18,7 @@ const files = [
     'Value.rt',
     'SimpleRepeater.rt',
     'Template.rt',
+    'Template2.rt',
     'SearchBox.rt',
     'NamingRepeater.rt',
     'buggy.rt',
