@@ -794,13 +794,12 @@ class ConvermaxTemplates {
       el.attr('rt-props', `{ dangerouslySetInnerHTML: {__html: ${value}}}`);
     });
 
-
     try {
       this.wrapProcess(this.findComponents(this.$.root()[0]))
       //logs.push(this.$.html())
-    } catch(e) {
-      console.log(e.message)
-      console.log(e)
+    } catch (e) {
+      //console.error(e.message);
+      throw e;
     }
   }
 
@@ -870,9 +869,9 @@ class ConvermaxTemplates {
         parsed = convertTemplateToReact(this.$.html(), this.options);
         parsed = parsed.replace(/_\.map/g, "_map");
         parsed = parsed.replace(/_\.assign/g, "Object.assign");
-    }catch(e) {
+    } catch (e) {
         //logs.push(e.message)
-        console.error(e.message)
+        throw e;
     }
     //logs.push(parsed)
 
