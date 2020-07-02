@@ -965,7 +965,7 @@ class ConvermaxTemplates {
     ast.body[0].expression.body.body = ast.body[0].expression.body.body.forEach(
       function(v) {
         if(v.type === "FunctionDeclaration") {
-          returnStatement = returnStatement.replace(v.id.name, `${v.id.name}_${suffix}`)
+            returnStatement = returnStatement.replace(new RegExp(v.id.name, 'g'), `${v.id.name}_${suffix}`)
 
           v.id.name = `${v.id.name}_${suffix}`;
           scopeArr.push(escodegen.generate(v) )
