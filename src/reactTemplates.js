@@ -745,6 +745,8 @@ function convertJSRTToJS(text, reportContext, options) {
 var path = require('path');
 var loaderUtils = require('loader-utils');
 var fs = require('fs');
+const Entities = require('html-entities').Html5Entities;
+const entities = new Entities();
 
 var nodeType = {
     element: 1,
@@ -869,6 +871,7 @@ class ConvermaxTemplates {
         parsed = convertTemplateToReact(this.$.html(), this.options);
         parsed = parsed.replace(/_\.map/g, "_map");
         parsed = parsed.replace(/_\.assign/g, "Object.assign");
+        parsed = entities.decode(parsed);
     } catch (e) {
         //logs.push(e.message)
         throw e;
