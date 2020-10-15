@@ -57,6 +57,7 @@
     "coveralls": "^3.0.2",
     "eslint": "^5.2.0",
     "eslint-config-wix-editor": "^3.4.0",
+    "eslint-plugin-import": "^2.17.3",
     "eslint-plugin-lodash": "^2.7.0",
     "eslint-plugin-react": "^7.10.0",
     "eslint-plugin-wix-editor": "^1.1.1",
