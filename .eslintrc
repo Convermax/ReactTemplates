@@ -1,7 +1,10 @@
 {
+    "parser": "babel-eslint",
     "extends": ["wix-editor", "wix-editor/node", "plugin:lodash/canonical"],
     "plugins": ["lodash", "wix-editor"],
     "rules": {
+        "strict": 0,
+        
         "semi": [2, "never"],
         "func-style": [2, "declaration", {"allowArrowFunctions": true}],
         "prefer-spread": 1,

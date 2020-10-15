@@ -13,7 +13,6 @@ const utils = require('./utils')
 const validateJS = utils.validateJS
 const RTCodeError = rtError.RTCodeError
 
-
 const repeatTemplate = _.template('_.map(<%= collection %>,<%= repeatFunction %>.bind(<%= repeatBinds %>))')
 const ifTemplate = _.template('((<%= condition %>)?(<%= body %>):null)')
 const propsTemplateSimple = _.template('_.assign({}, <%= generatedProps %>, <%= rtProps %>)')
@@ -58,14 +57,7 @@ const importAttr = 'rt-import'
 const statelessAttr = 'rt-stateless'
 const preAttr = 'rt-pre'
 
-const cm = nodeName => _.startsWith(nodeName, 'cm:')
-const cmTemplate = nodeName => _.startsWith(nodeName, 'cmTemplate:')
-const cmRepeater = nodeName => _.startsWith(nodeName, 'cmRepeater:')
-
 const reactTemplatesSelfClosingTags = [includeNode]
-
-
-const logs = [];
 
 /**
  * @param {Options} options
@@ -436,25 +428,12 @@ function convertHtmlToReact(node, context) {
 
         const children = _.map(node.children, child => {
             const code = convertHtmlToReact(child, context)
-            //console.log(code)
             validateJS(code, child, context)
             return code
         })
 
         data.children = utils.concatChildren(children)
-/*
-        if (cm(node.name)) {
-            console.log(node.name)
-        }
 
-        if (cmTemplate(node.name)) {
-            console.log(node.name)
-        }
-
-        if (cmRepeater(node.name)) {
-            console.log(node.name)
-        }
-*/
         if (node.name === virtualNode) { //eslint-disable-line wix-editor/prefer-ternary
             data.body = `[${_.compact(children).join(',')}]`
         } else {
@@ -639,10 +618,13 @@ function convertTemplateToReact(html, options) {
     return convertRT(html, context, options)
 }
 
-
 function parseAndConvertHtmlToReact(html, context) {
-
-    const rootNode = cheerio.load(html, cheerioConf)
+    const rootNode = cheerio.load(html, {
+        lowerCaseTags: false,
+        lowerCaseAttributeNames: false,
+        xmlMode: true,
+        withStartIndices: true
+    })
     utils.validate(context.options, context, context.reportContext, rootNode.root()[0])
     let rootTags = _.filter(rootNode.root()[0].children, {type: 'tag'})
     rootTags = handleSelfClosingHtmlTags(rootTags)
@@ -738,275 +720,10 @@ function convertJSRTToJS(text, reportContext, options) {
     return parseJS(code, options)
 }
 
-
-
-/*******Convermax code start********/
-
-var path = require('path');
-var loaderUtils = require('loader-utils');
-var fs = require('fs');
-const Entities = require('html-entities').Html5Entities;
-const entities = new Entities();
-
-var nodeType = {
-    element: 1,
-    attrubute: 2,
-    text: 3
-}
-var cheerioConf = {
-    lowerCaseTags: false,
-    lowerCaseAttributeNames: false,
-    xmlMode: true,
-    withStartIndices: true,
-    //decodeEntities: false
-};
-
-const print = (el) => {
-  console.log(serializer.serializeToString(el));
-  console.log();
-};
-
-
-function replaceDoubleBrackets(source) {
-    return source.replace(/{{[^}]+}}/g, (str) => `{this.${str.slice(2, -2).trim()}}`);
-}
-function clearXmlns(source) {
-    return source.replace(/xmlns="http:\/\/www\.w3\.org\/1999\/xhtml"/g, '');
-}
-function replaceColon(source) {
-    return source.replace(/\:/g, '_');
-}
-const getTagName = (wrapper) => (wrapper == null) ? 'div' : wrapper
-const getWidgetName = (widgetName) => (widgetName === '') ? undefined : widgetName;
-const getCount = (count) => (count !== '') ? count : 'undefined';
-
-class ConvermaxTemplates {
-  constructor(context, source, options) {
-    this.source = source;
-    this.context = context;
-    this.options = options;
-    this.repeaterContext = [];
-
-    this.$ = cheerio.load(replaceDoubleBrackets(source), cheerioConf);
-    this.$('[template]').each((index, element) => this.templateProcessCheerio(element, context.resourcePath));
-    this.$('[inner-html]').each((index, element) => {
-      const el = cheerio(element);
-      const value = el.attr('inner-html');
-      el.removeAttr('inner-html');
-      el.attr('rt-props', `{ dangerouslySetInnerHTML: {__html: ${value}}}`);
-    });
-
-    try {
-      this.wrapProcess(this.findComponents(this.$.root()[0]))
-      //logs.push(this.$.html())
-    } catch (e) {
-      //console.error(e.message);
-      throw e;
-    }
-  }
-
-  findComponents($element) {
-    const childNodes = $element.children
-    const components = [];
-    if(childNodes.length == 0) {
-        return components
-    }
-
-    for(let i = 0; i < childNodes.length; i++) {
-        if(childNodes[i].children != null && childNodes[i].children.length > 0) {
-            components.push(...this.findComponents(childNodes[i]));
-        }
-        if(childNodes[i].name != null
-          && cm(childNodes[i].name)
-          || cmTemplate(childNodes[i].name)
-          || cmRepeater(childNodes[i].name)) {
-            components.push(childNodes[i]);
-        }
-    }
-    return components
-  }
-  wrapProcess (components) {
-    components.forEach((component) => {
-
-        const $component = this.$(component);
-
-        if(cm(component.name)) {
-            $component.replaceWith(this.simpleComponent($component))
-        }
-        if(cmTemplate(component.name)) {
-            if(cmRepeater(component.parent.name)) {
-                this.repeaterContext.push(this.functionTemplate($component))
-            } else {
-
-                $component.replaceWith(this.rtIfTemplate($component))
-            }
-        }
-        if(cmRepeater(component.name)) {
-            if(this.repeaterContext.length === 0) {
-                $component.replaceWith(this.repeaterComponent($component))
-            } else {
-                 $component.replaceWith(this.repeaterComponent($component,
-                    `function(){ ${[...this.repeaterContext].map(v => v.scope).join('')} return ${[...this.repeaterContext, {condition: 'React.createElement("div", {"className": "cmTemplate_Unknow"}, JSON.stringify(this))'}]
-                        .map(v => v.condition).join(':')}}`))
-
-                this.repeaterContext = [];
-            }
-        }
-    });
-  }
-
-  templateProcessCheerio (element, resourcePath) {
-      const el = this.$(element);
-      const templatePath = path.resolve(path.dirname(resourcePath), el.attr('template'));
-      el.removeAttr('template');
-      const source = this.options.readFileSync(templatePath).toString('utf8');
-      const file = cheerio.load(replaceDoubleBrackets(source), cheerioConf);
-      file('[template]').each((index, element) => this.templateProcessCheerio(element, templatePath))
-      el.empty().append(file.html(), cheerioConf);
-  }
-
-  getReactTemplate() {
-    let parsed;
-    try {
-        parsed = convertTemplateToReact(this.$.html(), this.options);
-        parsed = parsed.replace(/_\.map/g, "_map");
-        parsed = parsed.replace(/_\.assign/g, "Object.assign");
-        parsed = entities.decode(parsed);
-    } catch (e) {
-        //logs.push(e.message)
-        throw e;
-    }
-    //logs.push(parsed)
-
-
-    if(logs.length > 0) {
-        fs.writeFileSync('log.rt', logs.join('\n'));
-    }
-    return parsed;
-  }
-  simpleComponent($node) {
-    const newTagName = getTagName($node.attr('wrapper'))
-    const widgetName = getWidgetName($node.attr('widget-name'));
-    const items = getWidgetName($node.attr('cm-items'));
-    const slicedName = $node.get(0).tagName.slice(3);
-
-    const localRoot = cheerio.load(`<${newTagName}>${$node.html()}</${newTagName}>`, cheerioConf);
-    const newNode = localRoot(newTagName).first();
-    const virtualRoot = cheerio.load('<rt-virtual>', cheerioConf);
-    const virtual = localRoot('<rt-virtual>').first();
-    $node.attr('wrapper', null);
-    $node.attr('widget-name', null);
-    $node.attr('cm-items', null);
-    if(newTagName !== "React.Fragment") {
-
-        newNode.attr($node.attr());
-        newNode.addClass(replaceColon($node.get(0).tagName));
-    }
-    const converted = convertTemplateToReact(localRoot.html(),{...this.options, modules: 'jsrt'});
-    virtual.text(`{this.${slicedName}(${converted},{widgetName:'${widgetName}', items:${items}})}`)
-
-    return virtual;
-  }
-  repeaterComponent($node, inner) {
-    const newTagName = getTagName($node.attr('wrapper'));
-    const count = getCount($node.attr('count'));
-    $node.attr('wrapper', null);
-    $node.attr('count', null);
-
-    const slicedName = $node.get(0).tagName.slice(11);
-    const localRoot = cheerio.load(`<${newTagName}><rt-virtual/></${newTagName}`, cheerioConf);
-    const newNode = localRoot(newTagName).first();
-
-    const virtual = localRoot('rt-virtual').first();
-    const fragmentRoot = cheerio.load('<div>', cheerioConf);
-    const fragmentNode = fragmentRoot($node);
-
-    virtual.attr('rt-repeat', `${slicedName} in this.${slicedName}`);
-
-    virtual.text(`{${slicedName}(${
-      (inner == null) ? convertTemplateToReact(fragmentNode.html(), {...this.options, modules: 'jsrt'})
-      : inner
-    }, {count:${count}})}`);
-
-
-    if(newTagName !== "React.Fragment") {
-        newNode.attr($node.attr());
-        newNode.addClass(replaceColon($node.get(0).tagName))
-    }
-    return localRoot.html();
-  }
-
-  rtIfTemplate($node) {
-    const newTagName = getTagName($node.attr('wrapper'))
-    const widgetName = getWidgetName($node.attr('widget-name'));
-    const slicedName = $node.get(0).tagName.slice(11);
-    const localRoot = cheerio.load(`<${newTagName}>`, cheerioConf);
-
-    const newNode = localRoot(`<${newTagName}>`);
-    newNode.append($node.html())
-    const rtIfAttr = $node.attr('rt-if');
-    $node.attr('wrapper', null);
-    $node.attr('rt-if', null);
-
-    newNode.attr('rt-if', (rtIfAttr == null) ? `this.template === '${slicedName}'`: rtIfAttr)
-
-    if(newTagName !== "React.Fragment") {
-        newNode.attr($node.attr());
-        newNode.addClass(replaceColon($node.get(0).tagName))
-    }
-    return newNode;
-  }
-
-  parseReactTemplate(fnString, suffix) {
-    let ast = esprima.parseScript(`(${fnString})`)
-    let returnStatement = escodegen.generate(
-      ast.body[0].expression.body.body.find(function(v){return v.type === "ReturnStatement"}).argument
-    );
-
-    let scopeArr = [];
-
-    ast.body[0].expression.body.body = ast.body[0].expression.body.body.forEach(
-      function(v) {
-        if(v.type === "FunctionDeclaration") {
-            returnStatement = returnStatement.replace(new RegExp(v.id.name, 'g'), `${v.id.name}_${suffix}`)
-
-          v.id.name = `${v.id.name}_${suffix}`;
-          scopeArr.push(escodegen.generate(v) )
-        }
-      }
-    )
-    return {func: returnStatement, scope: scopeArr.join('\n')};
-  }
-  functionTemplate($node) {
-    const newTagName = getTagName($node.attr('wrapper'));
-    const localRoot = cheerio.load(`<${newTagName}>${$node.html()}</${newTagName}>`, cheerioConf);
-    const newNode = localRoot(newTagName).first();
-    const slicedName = $node.get(0).tagName.slice(11);
-    const rtIfAttr = $node.attr('rt-if');
-
-    $node.attr('wrapper', null);
-    $node.attr('rt-if', null);
-
-    const condition = (rtIfAttr == null) ? `(this.template === '${slicedName}')` : `(${rtIfAttr})`;
-
-    if(newTagName !== "React.Fragment") {
-        newNode.attr($node.attr());
-        newNode.addClass(replaceColon($node.get(0).tagName));
-    }
-    const reactTemplateParse = this.parseReactTemplate(
-        convertTemplateToReact(localRoot.html(), {...this.options, modules: 'jsrt'}),
-        slicedName.replace('-', ''));
-
-    return { condition: `${condition}?(${reactTemplateParse.func})`, scope: reactTemplateParse.scope};
-  }
-}
-
-
 module.exports = {
     convertTemplateToReact,
     convertRT,
     convertJSRTToJS,
     RTCodeError,
-    ConvermaxTemplates,
     normalizeName: utils.normalizeName
 }
