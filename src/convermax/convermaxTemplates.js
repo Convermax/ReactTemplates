@@ -4,7 +4,7 @@ const escodegen = require('escodegen');
 const path = require('path');
 const htmlEntities = require('html-entities').Html5Entities;
 
-const RT = require('../reactTemplates');
+const { convertTemplateToReact } = require('../reactTemplates');
 
 const cm = nodeName => nodeName?.startsWith('cm:');
 const cmTemplate = nodeName => nodeName?.startsWith('cmTemplate:');
@@ -119,7 +119,7 @@ class ConvermaxTemplates {
   getReactTemplate() {
     let parsed;
     try {
-      parsed = RT.convertTemplateToReact(this.$.html(), this.options);
+      parsed = convertTemplateToReact(this.$.html(), this.options);
       parsed = parsed.replace(/_\.map/g, '_map');
       parsed = parsed.replace(/_\.assign/g, 'Object.assign');
       parsed = htmlEntities.decode(parsed);
@@ -147,7 +147,7 @@ class ConvermaxTemplates {
       newNode.attr($node.attr());
       newNode.addClass(replaceColon($node.get(0).tagName));
     }
-    const converted = RT.convertTemplateToReact(localRoot.html(), { ...this.options, modules: 'jsrt' });
+    const converted = convertTemplateToReact(localRoot.html(), { ...this.options, modules: 'jsrt' });
     virtual.text(`{this.${slicedName}(${converted},{widgetName:'${widgetName}', items:${items}})}`);
 
     return virtual;
@@ -170,7 +170,7 @@ class ConvermaxTemplates {
     virtual.attr('rt-repeat', `${slicedName} in this.${slicedName}`);
 
     virtual.text(`{${slicedName}(${
-      inner == null ? RT.convertTemplateToReact(fragmentNode.html(), { ...this.options, modules: 'jsrt' }) :
+      inner == null ? convertTemplateToReact(fragmentNode.html(), { ...this.options, modules: 'jsrt' }) :
         inner
     }, {count:${count}})}`);
 
@@ -220,7 +220,7 @@ class ConvermaxTemplates {
     return { func: returnStatement, scope: scopeArr.join('\n') };
   }
   /* eslint-enable class-methods-use-this */
-  
+
   functionTemplate($node) {
     const newTagName = getTagName($node.attr('wrapper'));
     const localRoot = cheerio.load(`<${newTagName}>${$node.html()}</${newTagName}>`, cheerioConf);
@@ -238,7 +238,7 @@ class ConvermaxTemplates {
       newNode.addClass(replaceColon($node.get(0).tagName));
     }
     const reactTemplateParse = this.parseReactTemplate(
-      RT.convertTemplateToReact(localRoot.html(), { ...this.options, modules: 'jsrt' }),
+      convertTemplateToReact(localRoot.html(), { ...this.options, modules: 'jsrt' }),
       slicedName.replace('-', '')
     );
 
