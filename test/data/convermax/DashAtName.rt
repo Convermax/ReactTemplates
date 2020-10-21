@@ -1,7 +1,0 @@
-<div>
-  <cmRepeater:Facets>
-      <cmTemplate:Model-Dash>
-        <span rt-repeat="value in [1, 2, 3]">{value}</span>
-      </cmTemplate:Model-Dash>
-  </cmRepeater:Facets>
-</div>

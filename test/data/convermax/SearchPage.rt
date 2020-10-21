@@ -1,8 +1,0 @@
-<main rt-scope="this.isMobile as isMobile">
-  <cm:SearchResult >
-    <cm:Loading template="./Component.rt" />
-    <ul rt-if="this.TotalHits > 0" class="products">
-      <cmRepeater:Items template="./SearchPage_Items.rt" />
-    </ul>
-  </cm:SearchResult>
-</main>

@@ -1,7 +1,0 @@
-<div>
-  <cmRepeater:GroupItemsBy rt-if="this.TotalHits > 0" count="3"  wrapper="React.Fragment">
-    <cmRepeater:Group class="repeaterGroup-class">
-      <div class="item-class">Item</div>
-    </cmRepeater:Group>
-  </cmRepeater:GroupItemsBy>
-</div>

@@ -1,8 +1,0 @@
-<div>
-    <cm:SearchHeader
-      id="searchHeader"
-      widget-name="searchHeader"
-      wrapper="li"
-      class="cm_class"
-      cm-items="[1,2,3]"></cm:SearchHeader>
-</div>
