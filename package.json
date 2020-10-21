@@ -18,8 +18,7 @@
     "major": "npm version major -m\"update version to %s\" && git push && git push --tags",
     "buildwp": "webpack --config webpack-production.config.js --progress --profile --colors",
     "babel": "rimraf dist && \"node_modules/.bin/babel\" src/ --out-dir dist",
-    "all": "npm run lint && npm run test",
-    "prepublish": "npm run babel"
+    "all": "npm run lint && npm run test"
   },
   "repository": {
     "type": "git",
